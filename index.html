@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container" ng-app="myApp" ng-controller="myCtrl">
+        <form>
+            <div class="form-group row">
+                <label for="textForRead">Escriba la carajada que quiere escuchar:</label>
+                <textarea class="form-control" ng-model="textForRead" id="textForRead" rows="5"></textarea>
+            </div>
+
+            <div class="form-group row">
+                <label for="voice">Escoja la vocecilla:</label>
+                <select ng-model="selectedVoice" id="voice" class="custom-select"
+                    ng-options="item for item in voices"></select>
+            </div>
+
+            <div class="form-group row">
+
+                <div class="btn-group" role="group" aria-label="Basic example">
+                    <button type="button" id="read" ng-click="read()" class="btn btn-primary " data-toggle="tooltip"
+                        data-placement="top" title="Pare la oreja"><i class='fas fa-headphones'></i> Pare la oreja</button>
+
+                    <button type="button" id="erase" ng-click="erase()" class="btn btn-secondary " data-toggle="tooltip"
+                        data-placement="top" title="Va de nuevo"><i class='fas fa-eraser'></i> Va de nuevo</button>
+
+                    <button type="button" id="stop" ng-click="stop()" class="btn btn-secondary " data-toggle="tooltip"
+                        data-placement="top" title="No haga bulla"><i class='fas fa-volume-mute'></i> No haga bulla</button>
+
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <script src='https://kit.fontawesome.com/a076d05399.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.min.js"></script>
+
+    <script>
+        var app = angular.module('myApp', []);
+        app.controller('myCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
+
+            // Set/get voice by user
+            $scope.selectedVoice = "";
+
+            // Set/get text for read by user
+            $scope.textForRead = ""
+
+            // String for loading message
+            $scope.loadingMessage = "Suave un toque...";
+
+            // Array for save voices exposed by Speech API
+            $scope.voices = [];
+
+            // This function permit erase the text typing by user
+            $scope.erase = function () {
+                $scope.textForRead = "";
+            };
+
+            // This function load voices exposed by Speech API, and save in array voices variable
+            $scope.loadVoices = function () {
+                waitingDialog.show($scope.loadingMessage);
+                speechSynthesis.getVoices();
+                $timeout(function () {
+                    $scope.voices = [];
+                    speechSynthesis.getVoices().forEach(function (voice) {
+                        $scope.voices.push(voice.name)
+                    });
+
+                    waitingDialog.hide();
+                }, 1000);
+            };
+
+            // This function trigger Speech API for read the text typing by user.
+            // Also permit get the specific voice selected by user for read the text
+            $scope.read = function () {
+
+                waitingDialog.show($scope.loadingMessage);
+                speechSynthesis.getVoices();
+
+                $timeout(function () {
+
+                    var voiceIndex = speechSynthesis.getVoices().findIndex(function (voice) {
+                        return voice.name === $scope.selectedVoice;
+                    });
+
+                    var instance = new SpeechSynthesisUtterance();
+                    instance.voice = speechSynthesis.getVoices()[voiceIndex];
+                    instance.text = $scope.textForRead;
+
+                    waitingDialog.hide();
+
+                    speechSynthesis.speak(instance);
+
+                }, 1000);
+            };
+
+            // This function give the posibility to stop reading, triggering cancel action in Speech API
+            $scope.stop = function () {
+                speechSynthesis.cancel();
+            };
+
+            // Load voices when load/refresh the page
+            $scope.loadVoices();
+        }]
+
+
+        );
+    </script>
+
+    <script>
+
+        var waitingDialog = waitingDialog || (function ($) {
+            'use strict';
+
+            // Creating modal dialog's DOM
+            var $dialog = $(
+                '<div class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">' +
+                '<div class="modal-dialog modal-m">' +
+                '<div class="modal-content">' +
+                '<div class="modal-header"><h3 style="margin:0;"></h3></div>' +
+                '<div class="modal-body">' +
+                '<div class="progress progress-striped active" style="margin-bottom:0;"><div class="progress-bar" style="width: 100%"></div></div>' +
+                '</div>' +
+                '</div></div></div>');
+
+            return {
+                /**
+                 * Opens our dialog
+                 * @param message Custom message
+                 * @param options Custom options:
+                 * 				  options.dialogSize - bootstrap postfix for dialog size, e.g. "sm", "m";
+                 * 				  options.progressType - bootstrap postfix for progress bar type, e.g. "success", "warning".
+                 */
+                show: function (message, options) {
+                    // Assigning defaults
+                    if (typeof options === 'undefined') {
+                        options = {};
+                    }
+                    if (typeof message === 'undefined') {
+                        message = 'Loading';
+                    }
+                    var settings = $.extend({
+                        dialogSize: 'm',
+                        progressType: '',
+                        onHide: null // This callback runs after the dialog was hidden
+                    }, options);
+
+                    // Configuring dialog
+                    $dialog.find('.modal-dialog').attr('class', 'modal-dialog').addClass('modal-' + settings.dialogSize);
+                    $dialog.find('.progress-bar').attr('class', 'progress-bar');
+                    if (settings.progressType) {
+                        $dialog.find('.progress-bar').addClass('progress-bar-' + settings.progressType);
+                    }
+                    $dialog.find('h3').text(message);
+                    // Adding callbacks
+                    if (typeof settings.onHide === 'function') {
+                        $dialog.off('hidden.bs.modal').on('hidden.bs.modal', function (e) {
+                            settings.onHide.call($dialog);
+                        });
+                    }
+                    // Opening dialog
+                    $dialog.modal();
+                },
+                /**
+                 * Closes dialog
+                 */
+                hide: function () {
+                    $dialog.modal('hide');
+                }
+            };
+
+        })(jQuery);
+
+    </script>
+</body>
+
+</html>
