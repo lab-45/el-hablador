@@ -17,5 +17,7 @@ For "loading modal" using a snippet [Waiting for](https://bootsnipp.com/snippets
 ## References
 
 https://wicg.github.io/speech-api/
+
 https://wicg.github.io/speech-api/#tts-section
+
 https://developer.mozilla.org/en-US/docs/Web/API/Window/speechSynthesis
