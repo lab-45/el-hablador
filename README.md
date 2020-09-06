@@ -12,12 +12,12 @@ Web Speech API supported browsers.
 - Fontawesome
 - AngularJS
 
-For "loading modal" using a snippet [Waiting for](https://bootsnipp.com/snippets/rga0j)
+For "loading modal" used a [Waiting for snippet](https://bootsnipp.com/snippets/rga0j).
 
 ## References
 
-https://wicg.github.io/speech-api/
+[Web Speech API](https://wicg.github.io/speech-api/)
 
-https://wicg.github.io/speech-api/#tts-section
+[The SpeechSynthesis Interface](https://wicg.github.io/speech-api/#tts-section)
 
-https://developer.mozilla.org/en-US/docs/Web/API/Window/speechSynthesis
+[Window.speechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/Window/speechSynthesis)
